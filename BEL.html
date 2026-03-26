@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Стани грамотен - БЕЛ 6. клас</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0a0f2c, #1b2a6b);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .game-container {
+      width: 90%;
+      max-width: 900px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 2px solid #ffd700;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    }
+
+    h1 {
+      text-align: center;
+      color: #ffd700;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #d9e6ff;
+    }
+
+    .question-box {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+      min-height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border: 1px solid rgba(255, 215, 0, 0.4);
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    button.answer-btn {
+      background: #102060;
+      color: white;
+      border: 2px solid #4da3ff;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.25s;
+      text-align: left;
+    }
+
+    button.answer-btn:hover:not(:disabled) {
+      background: #1c3aa9;
+      transform: scale(1.02);
+    }
+
+    button.answer-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .lifeline, .restart-btn {
+      background: #ffd700;
+      color: #111;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .lifeline:hover:not(:disabled),
+    .restart-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .lifeline:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .status-item {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 215, 0, 0.4);
+    }
+
+    .message {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 1.1rem;
+      min-height: 32px;
+      color: #ffe082;
+      font-weight: bold;
+    }
+
+    .money-ladder {
+      margin-top: 25px;
+      background: rgba(255,255,255,0.07);
+      padding: 15px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 215, 0, 0.4);
+    }
+
+    .money-ladder h3 {
+      margin-top: 0;
+      text-align: center;
+      color: #ffd700;
+    }
+
+    .ladder-item {
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin: 4px 0;
+    }
+
+    .current {
+      background: #ffd700;
+      color: #111;
+      font-weight: bold;
+    }
+
+    .safe {
+      border: 1px solid #7CFC00;
+    }
+
+    @media (max-width: 700px) {
+      .answers {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>Стани грамотен</h1>
+    <div class="subtitle">Игра по БЕЛ за 6. клас - Части на речта</div>
+
+    <div class="status-bar">
+      <div class="status-item" id="questionNumber">Въпрос: 1 / 15</div>
+      <div class="status-item" id="guaranteedLevel">Гарантирана сума: 0 точки</div>
+      <div class="status-item" id="score">Точки: 0</div>
+    </div>
+
+    <div class="question-box" id="questionBox">Натисни отговор, за да започнеш!</div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="controls">
+      <button class="lifeline" id="fiftyFiftyBtn">50:50</button>
+      <button class="lifeline" id="audienceBtn">Помощ от класа</button>
+      <button class="lifeline" id="skipBtn">Смяна на въпроса</button>
+      <button class="restart-btn" id="restartBtn">Нова игра</button>
+    </div>
+
+    <div class="message" id="message"></div>
+
+    <div class="money-ladder">
+      <h3>Стълбица на успеха</h3>
+      <div id="ladder"></div>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "Коя дума е съществително име?",
+        answers: ["А) бягам", "Б) маса", "В) червен", "Г) бързо"],
+        correct: 1
+      },
+      {
+        question: "Коя дума е прилагателно име?",
+        answers: ["А) куче", "Б) красиво", "В) красив", "Г) рисувам"],
+        correct: 2
+      },
+      {
+        question: "Коя дума е глагол?",
+        answers: ["А) чета", "Б) книга", "В) тих", "Г) вчера"],
+        correct: 0
+      },
+      {
+        question: "Коя дума отговаря на въпроса „как?“",
+        answers: ["А) вчера", "Б) тихо", "В) ученик", "Г) син"],
+        correct: 1
+      },
+      {
+        question: "Коя дума е числително име?",
+        answers: ["А) трети", "Б) три", "В) троен", "Г) тройка"],
+        correct: 1
+      },
+      {
+        question: "В кое изречение има лично местоимение?",
+        answers: ["А) Момчето чете.", "Б) Той чете книга.", "В) Книгата е нова.", "Г) Вчера валя."],
+        correct: 1
+      },
+      {
+        question: "Коя дума е предлог?",
+        answers: ["А) над", "Б) летя", "В) син", "Г) утре"],
+        correct: 0
+      },
+      {
+        question: "Коя дума е съюз?",
+        answers: ["А) но", "Б) там", "В) този", "Г) мой"],
+        correct: 0
+      },
+      {
+        question: "Коя дума е наречие?",
+        answers: ["А) бърз", "Б) бързо", "В) бързина", "Г) бързам"],
+        correct: 1
+      },
+      {
+        question: "Коя дума е възклицание?",
+        answers: ["А) ах", "Б) и", "В) към", "Г) той"],
+        correct: 0
+      },
+      {
+        question: "В кое изречение думата „много“ е наречие?",
+        answers: ["А) Имам много книги.", "Б) Той е много умен.", "В) Много ученици дойдоха.", "Г) Много от тях отсъстваха."],
+        correct: 1
+      },
+      {
+        question: "Коя дума НЕ е самостойна част на речта?",
+        answers: ["А) съществително име", "Б) глагол", "В) предлог", "Г) прилагателно име"],
+        correct: 2
+      },
+      {
+        question: "Коя дума е притежателно местоимение?",
+        answers: ["А) кой", "Б) мой", "В) този", "Г) себе си"],
+        correct: 1
+      },
+      {
+        question: "В кое изречение „като“ е съюз?",
+        answers: ["А) Работи като учител.", "Б) Силен като лъв.", "В) Той знае, като се постарае.", "Г) Отиде като мен."],
+        correct: 2
+      },
+      {
+        question: "Коя дума може да бъде и съществително, и прилагателно име според контекста?",
+        answers: ["А) учен", "Б) чета", "В) бързо", "Г) той"],
+        correct: 0
+      }
+    ];
+
+    const ladderPoints = [100, 200, 300, 500, 1000, 2000, 3000, 5000, 7000, 10000, 12000, 15000, 20000, 30000, 50000];
+    const safeLevels = [4, 9, 14];
+
+    let currentQuestion = 0;
+    let currentScore = 0;
+    let guaranteedScore = 0;
+    let gameOver = false;
+
+    let fiftyUsed = false;
+    let audienceUsed = false;
+    let skipUsed = false;
+
+    const questionBox = document.getElementById("questionBox");
+    const answersDiv = document.getElementById("answers");
+    const messageDiv = document.getElementById("message");
+    const questionNumber = document.getElementById("questionNumber");
+    const guaranteedLevel = document.getElementById("guaranteedLevel");
+    const score = document.getElementById("score");
+    const ladder = document.getElementById("ladder");
+
+    const fiftyBtn = document.getElementById("fiftyFiftyBtn");
+    const audienceBtn = document.getElementById("audienceBtn");
+    const skipBtn = document.getElementById("skipBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    function renderLadder() {
+      ladder.innerHTML = "";
+      for (let i = ladderPoints.length - 1; i >= 0; i--) {
+        const div = document.createElement("div");
+        div.classList.add("ladder-item");
+        if (i === currentQuestion) div.classList.add("current");
+        if (safeLevels.includes(i)) div.classList.add("safe");
+        div.textContent = `${i + 1}. ${ladderPoints[i]} точки`;
+        ladder.appendChild(div);
+      }
+    }
+
+    function loadQuestion() {
+      if (currentQuestion >= questions.length) {
+        questionBox.textContent = "Поздравления! Ти стана шампион по БЕЛ!";
+        answersDiv.innerHTML = "";
+        messageDiv.textContent = `Край на играта! Спечели ${currentScore} точки!`;
+        gameOver = true;
+        renderLadder();
+        return;
+      }
+
+      const q = questions[currentQuestion];
+      questionBox.textContent = q.question;
+      answersDiv.innerHTML = "";
+      messageDiv.textContent = "";
+
+      q.answers.forEach((answer, index) => {
+        const btn = document.createElement("button");
+        btn.classList.add("answer-btn");
+        btn.textContent = answer;
+        btn.addEventListener("click", () => checkAnswer(index, btn));
+        answersDiv.appendChild(btn);
+      });
+
+      questionNumber.textContent = `Въпрос: ${currentQuestion + 1} / ${questions.length}`;
+      guaranteedLevel.textContent = `Гарантирана сума: ${guaranteedScore} точки`;
+      score.textContent = `Точки: ${currentScore}`;
+      renderLadder();
+    }
+
+    function checkAnswer(selectedIndex, btn) {
+      if (gameOver) return;
+
+      const correctIndex = questions[currentQuestion].correct;
+      const buttons = document.querySelectorAll(".answer-btn");
+
+      buttons.forEach(b => b.disabled = true);
+
+      if (selectedIndex === correctIndex) {
+        btn.style.background = "green";
+        currentScore = ladderPoints[currentQuestion];
+
+        if (safeLevels.includes(currentQuestion)) {
+          guaranteedScore = currentScore;
+        }
+
+        messageDiv.textContent = "Верен отговор!";
+        setTimeout(() => {
+          currentQuestion++;
+          loadQuestion();
+        }, 1200);
+      } else {
+        btn.style.background = "crimson";
+        buttons[correctIndex].style.background = "green";
+        messageDiv.textContent = `Грешен отговор! Играта приключи. Спечели ${guaranteedScore} точки.`;
+        currentScore = guaranteedScore;
+        score.textContent = `Точки: ${currentScore}`;
+        gameOver = true;
+      }
+    }
+
+    fiftyBtn.addEventListener("click", () => {
+      if (fiftyUsed || gameOver) return;
+
+      const correctIndex = questions[currentQuestion].correct;
+      const buttons = Array.from(document.querySelectorAll(".answer-btn"));
+
+      let wrongIndexes = buttons
+        .map((btn, index) => index)
+        .filter(index => index !== correctIndex);
+
+      wrongIndexes.sort(() => Math.random() - 0.5);
+      wrongIndexes.slice(0, 2).forEach(index => {
+        buttons[index].disabled = true;
+        buttons[index].style.visibility = "hidden";
+      });
+
+      fiftyUsed = true;
+      fiftyBtn.disabled = true;
+      messageDiv.textContent = "Жокер 50:50 е използван.";
+    });
+
+    audienceBtn.addEventListener("click", () => {
+      if (audienceUsed || gameOver) return;
+
+      const correctIndex = questions[currentQuestion].correct;
+      const percentages = [10, 20, 30, 40];
+      percentages[correctIndex] = 60 + Math.floor(Math.random() * 21);
+
+      let remaining = 100 - percentages[correctIndex];
+      let wrongs = [0, 1, 2, 3].filter(i => i !== correctIndex);
+
+      wrongs.forEach((idx, i) => {
+        if (i < wrongs.length - 1) {
+          let value = Math.floor(Math.random() * (remaining + 1));
+          percentages[idx] = value;
+          remaining -= value;
+        } else {
+          percentages[idx] = remaining;
+        }
+      });
+
+      messageDiv.innerHTML =
+        `Помощ от класа:<br>
+        А: ${percentages[0]}% |
+        Б: ${percentages[1]}% |
+        В: ${percentages[2]}% |
+        Г: ${percentages[3]}%`;
+
+      audienceUsed = true;
+      audienceBtn.disabled = true;
+    });
+
+    skipBtn.addEventListener("click", () => {
+      if (skipUsed || gameOver) return;
+
+      messageDiv.textContent = "Въпросът е сменен.";
+      skipUsed = true;
+      skipBtn.disabled = true;
+
+      currentQuestion++;
+      loadQuestion();
+    });
+
+    restartBtn.addEventListener("click", () => {
+      currentQuestion = 0;
+      currentScore = 0;
+      guaranteedScore = 0;
+      gameOver = false;
+
+      fiftyUsed = false;
+      audienceUsed = false;
+      skipUsed = false;
+
+      fiftyBtn.disabled = false;
+      audienceBtn.disabled = false;
+      skipBtn.disabled = false;
+
+      loadQuestion();
+    });
+
+    loadQuestion();
+  </script>
+</body>
+</html>
